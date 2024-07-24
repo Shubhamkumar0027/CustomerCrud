@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer List</title>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        function fetchCustomers() {
+            fetch('/customer?page=1&pageSize=10', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(response => response.json())
+            .then(customers => {
+                const tbody = document.getElementById('customerTable').querySelector('tbody');
+                tbody.innerHTML = '';
+                customers.forEach(customer => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${customer.firstName}</td>
+                        <td>${customer.lastName}</td>
+                        <td>${customer.street}</td>
+                        <td>${customer.address}</td>
+                        <td>${customer.city}</td>
+                        <td>${customer.state}</td>
+                        <td>${customer.email}</td>
+                        <td>${customer.phone}</td>
+                        <td>
+                            <button onclick="editCustomer(${customer.id})">Edit</button>
+                            <button onclick="deleteCustomer(${customer.id})">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        function deleteCustomer(id) {
+            fetch('/customer/' + id, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(() => fetchCustomers());
+        }
+
+        function editCustomer(id) {
+            window.location.href = 'edit-customer.html?id=' + id;
+        }
+
+        fetchCustomers();
+    
+                function syncCustomers() {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "sync", true);  // Calling the new servlet
+                    xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("token"));
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === 4 && xhr.status === 200) {
+                            alert("Customers synchronized successfully");
+                            fetchCustomers();
+                        }
+                    };
+                    xhr.send();
+                }
+
+                window.onload = fetchCustomers;
+            </script>
+</head>
+<body>
+    <h1>Customer List</h1>
+    <button onclick="window.location.href='add-customer.html'">Add New Customer</button>
+     <button onclick="syncCustomers()">Sync</button>
+    <table id="customerTable" border="1">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Street</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</body>
+</html>
